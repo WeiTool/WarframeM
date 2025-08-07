@@ -1,0 +1,42 @@
+
+### .gitignore
+```gitignore
+## 忽略 Visual Studio 生成文件 ##
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+## 编译输出 ##
+*.exe
+*.dll
+*.pdb
+
+## NuGet ##
+packages/
+*.nupkg
+.nuget/
+
+## 用户文件 ##
+*.userprefs
+
+## 临时文件 ##
+*.cache
+*.log
+*.tmp
+
+## 项目文件 ##
+*.csproj
+
+## 编辑器文件 ##
+.idea/
+.vscode/
+*.code-workspace
+
+## 其他 ##
+Thumbs.db
+.DS_Store
+.iss
