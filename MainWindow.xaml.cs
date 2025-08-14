@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,6 +23,8 @@ namespace WarframeM
         // 定时器用于自动查询
         private DispatcherTimer autoQueryTimer;
         private bool isNotificationEnabled = false;
+        private double lowestPrice = 0;
+        private double averagePrice = 0;
 
         // 可配置的查询间隔选项（分钟）
         private readonly Dictionary<string, TimeSpan> intervalOptions = new Dictionary<string, TimeSpan>
@@ -131,7 +134,8 @@ namespace WarframeM
             string itemName = itemNameTextBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(itemName))
             {
-                statusText.Text = "请输入物品名称";
+                if (!showNotificationOnly) // 只有手动查询时才显示输入提示
+                    statusText.Text = "请输入物品名称";
                 return;
             }
 
@@ -140,7 +144,9 @@ namespace WarframeM
                 searchButton.IsEnabled = false;
                 notifyButton.IsEnabled = false;
 
-                if (!showNotificationOnly)
+                bool shouldUpdateUI = !showNotificationOnly; // 控制UI更新的标志
+
+                if (shouldUpdateUI)
                 {
                     statusText.Text = "正在查询所有平台...";
                 }
@@ -151,7 +157,8 @@ namespace WarframeM
                 // 查询所有平台
                 foreach (var platform in platforms)
                 {
-                    if (!showNotificationOnly)
+                    // 自动查询时不更新平台查询状态，减少UI刷新
+                    if (shouldUpdateUI)
                     {
                         statusText.Text = $"正在查询 {platform.ToUpper()} 平台...";
                     }
@@ -161,29 +168,49 @@ namespace WarframeM
                     totalOrders += platformOrders.Count;
                 }
 
+                // 按状态优先级和价格排序
                 allOrders.Sort((a, b) =>
                 {
                     int statusCompare = GetStatusPriority(b.UserStatus).CompareTo(GetStatusPriority(a.UserStatus));
                     return statusCompare != 0 ? statusCompare : a.Platinum.CompareTo(b.Platinum);
                 });
 
-                if (!showNotificationOnly)
+                // 只有手动查询时才更新DataGrid和状态文本
+                if (shouldUpdateUI)
                 {
                     ordersDataGrid.ItemsSource = allOrders;
                     statusText.Text = $"找到 {totalOrders} 个出售订单（来自所有平台）";
                 }
 
-                // 显示最低价通知
+                // 计算最低价和平均价格
                 if (allOrders.Count > 0)
                 {
-                    var lowestPrice = allOrders[0].Platinum;
-                    ShowNotification($"{itemName} 最低价",
-                                    $"当前最低价: {lowestPrice} 白金");
+                    double newLowestPrice = allOrders[0].Platinum;
+                    double newAveragePrice = allOrders.Average(o => o.Platinum);
+
+                    // 只在价格有变化时才更新UI和发送通知（针对自动查询）
+                    bool pricesChanged = Math.Abs(newLowestPrice - lowestPrice) > 0.1 ||
+                                         Math.Abs(newAveragePrice - averagePrice) > 0.1;
+
+                    // 更新价格数据
+                    lowestPrice = newLowestPrice;
+                    averagePrice = newAveragePrice;
+
+                    // 更新概览卡片（始终更新，因为数据量小）
+                    lowestPriceCard.Text = $"{lowestPrice}";
+                    averagePriceCard.Text = $"{averagePrice:F1}";
+
+                    // 价格变化或手动查询时才显示通知
+                    if (shouldUpdateUI || pricesChanged)
+                    {
+                        ShowNotification($"{itemName} 最低价", $"当前最低价: {lowestPrice} 白金");
+                    }
                 }
-                else if (!showNotificationOnly)
+                else if (shouldUpdateUI)
                 {
-                    ShowNotification("查询结果",
-                                    $"未找到 {itemName} 的出售订单");
+                    lowestPriceCard.Text = "-";
+                    averagePriceCard.Text = "-";
+                    ShowNotification("查询结果", $"未找到 {itemName} 的出售订单");
                 }
             }
             catch (Exception ex)
@@ -192,8 +219,7 @@ namespace WarframeM
                 {
                     statusText.Text = $"错误: {ex.Message}";
                 }
-                ShowNotification("查询错误",
-                                $"查询 {itemName} 时出错: {ex.Message}");
+                ShowNotification("查询错误", $"查询 {itemName} 时出错: {ex.Message}");
             }
             finally
             {
@@ -230,6 +256,13 @@ namespace WarframeM
                     // 过滤离线玩家
                     if (order.User.Status == "offline") continue;
 
+                    // 处理物品等级
+                    string modRankDisplay = "None";
+                    if (order.ModRank.HasValue)
+                    {
+                        modRankDisplay = order.ModRank.Value.ToString();
+                    }
+
                     viewOrders.Add(new OrderViewModel
                     {
                         Platform = platform.ToUpper(),
@@ -242,7 +275,8 @@ namespace WarframeM
                             "ingame" => "游戏中",
                             _ => order.User.Status
                         },
-                        UserName = order.User.IngameName
+                        UserName = order.User.IngameName,
+                        ModRankDisplay = modRankDisplay,
                     });
                 }
 
@@ -290,6 +324,8 @@ namespace WarframeM
             ordersDataGrid.ItemsSource = null;
             ordersDataGrid.Items.Refresh();
             statusText.Text = "已清除";
+            lowestPriceCard.Text = "-";
+            averagePriceCard.Text = "-";
             isNotificationEnabled = false;
             autoQueryTimer.Stop();
             notifyButton.Content = "开启价格通知";
@@ -301,5 +337,6 @@ namespace WarframeM
             autoQueryTimer.Stop();
             base.OnClosed(e);
         }
+
     }
 }

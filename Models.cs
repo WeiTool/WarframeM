@@ -40,6 +40,10 @@ namespace WarframeM
         // 添加平台字段
         [JsonProperty("platform")]
         public string Platform { get; set; }
+
+        /// 物品等级
+        [JsonProperty("mod_rank")]
+        public int? ModRank { get; set; }
     }
 
     /// 用户信息模型
@@ -72,5 +76,14 @@ namespace WarframeM
         /// 玩家游戏内名称
         public string UserName { get; set; }
         public string Platform { get; set; }
+
+        /// 物品等级
+        public string ModRankDisplay { get; set; } = "None";
+
+        /// 玩家区域
+        public string Region { get; set; }
+
+        /// 复制命令文本
+        public string CopyCommand { get; set; }
     }
 }

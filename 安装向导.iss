@@ -44,7 +44,6 @@ Source: "C:\Compiler\C\WarframeM\bin\Release\{#MyAppExeName}"; DestDir: "{app}";
 Source: "C:\Compiler\C\WarframeM\bin\Release\Microsoft.Toolkit.Uwp.Notifications.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Compiler\C\WarframeM\bin\Release\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Compiler\C\WarframeM\bin\Release\System.ValueTuple.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Compiler\C\WarframeM\bin\Release\WarframeM.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 ; 注意：不要在任何共享系统文件上使用 "Flags: ignoreversion" 
 
 [Registry]

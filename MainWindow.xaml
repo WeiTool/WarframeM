@@ -6,64 +6,11 @@
         xmlns:local="clr-namespace:WarframeM"
         mc:Ignorable="d"
         Title="Warframe Market 查询" 
-        Height="500" Width="900"
-        MinWidth="600" MinHeight="400"
+        Height="600" Width="1000"
+        MinWidth="800" MinHeight="500"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI" FontSize="14">
-
-    <Window.Resources>
-        <Style TargetType="Button">
-            <Setter Property="Padding" Value="8 4"/>
-            <Setter Property="Background" Value="#FF1E88E5"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="MinWidth" Value="80"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF1976D2"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#FFBDBDBD"/>
-        </Style>
-
-        <Style TargetType="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,5,0"/>
-        </Style>
-
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#FFE0E0E0"/>
-            <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#FFF5F5F5"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="AutoGenerateColumns" Value="False"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="CanUserSortColumns" Value="True"/>
-            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
-        </Style>
-
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FFE3F2FD"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="10 6"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Padding" Value="6"/>
-            <Setter Property="Margin" Value="5,0,0,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-    </Window.Resources>
+        FontFamily="Segoe UI" FontSize="14"
+        Background="#FAFAFA">
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -72,46 +19,96 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 搜索区域 - 响应式布局 -->
+        <!-- 顶部概览区域 -->
         <Grid Grid.Row="0" Margin="0,0,0,15">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <!-- 新增间隔选择器列 -->
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="物品名称:" Grid.Column="0"/>
-            <TextBox x:Name="itemNameTextBox" Grid.Column="1" Margin="5,0,10,0"/>
-            <Button x:Name="searchButton" Content="查询" Grid.Column="2" Margin="0,0,5,0" Click="SearchButton_Click"/>
-            <Button x:Name="clearButton" Content="清除" Grid.Column="3" Margin="5,0,5,0" Click="ClearButton_Click"/>
-            <Button x:Name="notifyButton" Content="开启价格通知" Grid.Column="4" MinWidth="120" Margin="5,0,5,0" Click="NotifyButton_Click"/>
+            <!-- 单个卡片，内容显示在左右两侧 -->
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- 新增通知间隔选择器 -->
-            <ComboBox x:Name="intervalComboBox" Grid.Column="5" Width="100"
-                      SelectionChanged="IntervalComboBox_SelectionChanged"
-                      ToolTip="选择价格通知间隔"/>
+                <!-- 包含两个信息的卡片 -->
+                <Border Grid.Column="0" Style="{StaticResource OverviewCardStyle}">
+                    <!-- 使用Grid实现左右分布 -->
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左侧信息（左对齐） -->
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                            <TextBlock Text="最低价" Style="{StaticResource CardTitleStyle}" FontSize="40"/>
+                            <TextBlock x:Name="lowestPriceCard" Text="-" Style="{StaticResource CardValueStyle}" FontSize="40"/>
+                        </StackPanel>
+
+                        <!-- 右侧信息（右对齐） -->
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                            <TextBlock Text="平均价格" Style="{StaticResource CardTitleStyle}" FontSize="40"/>
+                            <TextBlock x:Name="averagePriceCard" Text="-" Style="{StaticResource CardValueStyle}" FontSize="40"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 右侧快捷入口区域 -->
+            <StackPanel Grid.Column="1" Width="300" Margin="15,0,0,0">
+                <!-- 商品名称卡片 -->
+                <Border Style="{StaticResource QuickCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="商品名称" Margin="0,0,0,5" Foreground="{StaticResource TextSecondaryColor}"/>
+                        <TextBox x:Name="itemNameTextBox"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 操作按钮卡片 -->
+                <Border Style="{StaticResource QuickCardStyle}">
+                    <StackPanel>
+                        <Button x:Name="searchButton" Content="查询" Click="SearchButton_Click"
+                                Margin="0,0,0,5"/>
+                        <Button x:Name="clearButton" Content="清除" Click="ClearButton_Click"
+                                Margin="0,0,0,5"/>
+                        <Button x:Name="notifyButton" Content="开启价格通知" Click="NotifyButton_Click"/>
+                        <TextBlock>开启价格通知后才能选择时间</TextBlock>
+
+                        <!-- 通知间隔选择器 -->
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Text="间隔:" VerticalAlignment="Center" Margin="0,0,5,0" 
+                                       Foreground="{StaticResource TextSecondaryColor}"/>
+                            <ComboBox x:Name="intervalComboBox" Grid.Column="1"
+                                      SelectionChanged="IntervalComboBox_SelectionChanged"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
 
         <!-- 状态信息 -->
-        <Border Grid.Row="1" Background="#FFF1F8E9" CornerRadius="4" 
+        <Border Grid.Row="1" Background="#FFF1F8E9" CornerRadius="8" 
                 Padding="10,6" Margin="0,0,0,15"
                 x:Name="statusBorder">
             <TextBlock x:Name="statusText" Foreground="#33691E" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- 结果展示 -->
+        <!-- 卖家信息列表 -->
         <DataGrid x:Name="ordersDataGrid" Grid.Row="2">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="玩家" Binding="{Binding UserName}" Width="150"/>
+                <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="60"/>
+                <DataGridTextColumn Header="等级" Binding="{Binding ModRankDisplay}" Width="60"/>
+                <DataGridTextColumn Header="价格" Binding="{Binding Platinum}" Width="80"/>
+                <DataGridTextColumn Header="状态" Binding="{Binding UserStatus}" Width="80"/>
                 <DataGridTextColumn Header="平台" Binding="{Binding Platform}" Width="80"/>
-                <DataGridTextColumn Header="类型" Binding="{Binding OrderType}" Width="70"/>
-                <DataGridTextColumn Header="价格" Binding="{Binding Platinum}" Width="70"/>
-                <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="70"/>
-                <DataGridTextColumn Header="状态" Binding="{Binding UserStatus}" Width="100"/>
-                <DataGridTextColumn Header="玩家" Binding="{Binding UserName}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
